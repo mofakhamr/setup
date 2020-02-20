@@ -1,0 +1,74 @@
+# Packages #
+############
+*.7z
+*.dmg
+*.gz
+*.bz2
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+*.tgz
+
+# Logs and databases #
+######################
+*.log
+*.sql
+
+# OS generated files #
+######################
+.DS_Store*
+ehthumbs.db
+Thumbs.db
+._*
+*~
+
+# Vim generated files #
+######################
+*.un~
+*.swp
+
+# SASS #
+##########
+.sass-cache
+
+# Ignore CSS & Map File
+#themes/*/*/*/*.css
+#themes/*/*/*.css
+*.css.map
+
+# Ignore the Node Modules folder
+/node_modules
+
+# Ignore Eclipse IDE stuff
+.buildpath
+.project
+.settings/*
+.settings
+.htpasswd
+.DS_Store
+
+# Ignore Netbeans IDE stuff
+nbproject/*
+build.xml
+build/*
+nbbuild/*
+dist/*
+nbdist/*
+nbactions.xml
+nb-configuration.xml
+modules/custom/nbproject/
+themes/custom/nbproject/
+modules/nbproject/
+themes/nbproject/
+
+# Ignore PHPStore IDE stuff
+.idea
+
+# Ignore Mac stuff
+.DS_Store
+
+# Ignore local file dirs
+tmp
+private_files

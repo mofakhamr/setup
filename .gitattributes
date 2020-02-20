@@ -1,0 +1,9 @@
+# specify which files to encrypt using [git-crypt](https://www.agwa.name/projects/git-crypt/)
+#
+# Hide specific file
+secretfile filter=git-crypt diff=git-crypt
+# Hide all .key files
+*.key filter=git-crypt diff=git-crypt
+# Hide secrets folder and sub folders
+secrets/**/* filter=git-crypt diff=git-crypt
+
