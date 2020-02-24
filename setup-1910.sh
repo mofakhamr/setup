@@ -124,8 +124,8 @@ askInstall nginx Nginx installNginx
 
 # Install Platform.sh cli tool
 installPsh() {
-   curl -sS https://platform.sh/cli/installer | php
-   source ~/.bashrc
+  curl -sS https://platform.sh/cli/installer | php;
+  source ~/.bashrc
 }
 # executable, friendly name, install function
 askInstall platform PlatformSH-cli installPsh
@@ -165,7 +165,40 @@ installGitCrypt() {
 # executable, friendly name, install function
 askInstall git-crypt GitCrypt installGitCrypt
 
+# Node
+installNode() {
+  # node 13
+  curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+  sudo apt-get install -y nodejs
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash
+}
+# executable, friendly name, install function
+askInstall node Node-and-npm installNode
 
+# Docker
+installDocker() {
+  sudo apt-get remove docker docker-engine docker.io containerd runc
+  sudo apt-get install \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg-agent \
+    software-properties-common
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  # would be nice to verify the key dynamically
+  #VERIFY=sudo apt-key fingerprint 0EBFCD88|grep 9DC8 5822 9FC7 DD38 854A E2D8 8D81 803C 0EBF CD88
+  # install bionic not eoan
+  sudo add-apt-repository  "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
+  sudo apt-get update
+  sudo apt-get install docker-ce docker-ce-cli containerd.io
+  # post install
+  sudo groupadd docker
+  sudo usermod -aG docker $USER
+  newgrp docker
+  echo -e "You can now test Docker by running: ${GREEN}docker run hello-world${NC}"
+}
+# executable, friendly name, install function
+askInstall docker Docker installDocker
 
 # Some final bits
 finalBits(){
@@ -196,8 +229,13 @@ finalBits(){
     # @TODO need git crypt
 
     # Checkout git repo of site
+    cd /var/www
+    git clone git@github.com:THE-Engineering/cms-the-platform.git the
+    cd /var/www/the
+    platform  build
 
     # Drupal settings file
+    # @TODO need git crypt
 
 
   else
