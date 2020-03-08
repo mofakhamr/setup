@@ -83,7 +83,7 @@ installMariaDB() {
 askInstall mysql MariaDB installMariaDB
 
 # PHP
-installPhp() {
+installPhp71() {
   if ! [ -e /etc/apt/sources.list.d/ondrej-ubuntu-php-eoan.list ]; then
     sudo apt-add-repository ppa:ondrej/php
   fi
@@ -93,7 +93,20 @@ installPhp() {
   sudo systemctl restart php7.1-fpm
 }
 # executable, friendly name, install function
-askInstall php PHP installPhp
+askInstall71 php7.1 "PHP-7.1" installPhp
+
+# PHP 7.3
+installPhp73 () {
+  if ! [ -e /etc/apt/sources.list.d/ondrej-ubuntu-php-eoan.list ]; then
+    sudo apt-add-repository ppa:ondrej/php
+  fi
+  sudo apt update
+  sudo apt-get install php7.3-xml php7.3-curl php7.3-fpm php7.3-mysql php7.3-mbstring php7.3-redis
+  sudo sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g' /etc/php/7.3/fpm/php.ini
+  sudo systemctl restart php7.3-fpm
+}
+askInstall php7.3 "PHP-7.3" installPhp
+
 
 # Nginx
 installNginx() {

@@ -14,7 +14,7 @@ if [ "$UID" -ne 0 ]; then
 fi
 [ "$UID" -eq 0 ] || exec sudo bash "$0" "$@"
 
-echo "${GREEN}Choose a PHP version${NC}"
+echo -e "${GREEN}Choose a PHP version for your CLI${NC}"
 
 # site configs in nginx control version (via fpm sockets)
 
@@ -22,7 +22,7 @@ echo "${GREEN}Choose a PHP version${NC}"
 # sudo update-alternatives --set php /usr/bin/php7.1 > /dev/null
 
 
-PS3='Please select a PHP version: '
+PS3='Please select a PHP version for CLI: '
 options=(`ls -b /usr/bin/php*|grep php[0-9]\.[0-9]` "Quit")
 
 select opt in "${options[@]}"
