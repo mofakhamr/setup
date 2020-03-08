@@ -196,6 +196,8 @@ installDocker() {
   sudo usermod -aG docker $USER
   newgrp docker
   echo -e "You can now test Docker by running: ${GREEN}docker run hello-world${NC}"
+  # install Docker compose
+  sudo apt install docker-compose
 }
 # executable, friendly name, install function
 askInstall docker Docker installDocker
