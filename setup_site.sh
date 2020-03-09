@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# delete test
+#  sudo rm /etc/nginx/sites-enabled/test /etc/nginx/sites-available/test /etc/php/7.3/fpm/pool.d/test.conf
+
 # Setup colours.
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -45,11 +48,15 @@ done
 echo -e "${YELLOW}Enter a folder to locate the files${NC}"
 read -p "[/var/www/${sitename}]" destination
 destination=${destination:-"/var/www/${sitename}"}
-if [ -f "${destination}" ]; then
-  echo -e "${PURPLE}${destination} doesn't exist and will be created${NC}"
-  exit 1;
+if [ ! -d "${destination}" ]; then
+  echo -e "${RED}Folder ${destination} doesn't exist${NC}"
+  echo -e "${YELLOW}Shall I create the folder ${destination}? [y N]${NC}"
+  read create
+  if [ "$create" != "${create#[Yy]}" ]; then
+    mkdir ${destination}
+    echo '<?php phpinfo();' > "${destination}/index.php"
+  fi
 fi
-echo ""
 
 #
 # TODO
