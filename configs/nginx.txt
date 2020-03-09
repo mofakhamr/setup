@@ -2,13 +2,13 @@ server {
 	listen 80;
 	listen [::]:80;
 
-	root /var/www/the/_www;
+	root DESTINATION;
 
 	# Add index.php to the list if you are using PHP
 	index index.php;
 
 	# REMEMBER TO CREATE hosts ENTRY IF NOT LOCALHOST
-	server_name the.localhost;
+	server_name SITENAME.localhost;
 
         # Speed up the local purge responses
         if ($request_method = PURGE) {
@@ -59,7 +59,7 @@ server {
 
         # Create a location block for Tes institute
         location @rewrite {
-	    rewrite ^/institute/(.*)$ /academic/$1 last;
+	    #rewrite ^/institute/(.*)$ /academic/$1 last;
             add_header rewriteInvoked 1;
             rewrite ^/(.*)$ /index.php?q=$1;
         }
@@ -76,7 +76,7 @@ server {
 		# With php7.0-cgi alone:
 		#fastcgi_pass 127.0.0.1:9000;
 		# With php7.0-fpm:
-		fastcgi_pass unix:/run/php/php7.1-fpm-the.sock;
+		fastcgi_pass unix:/run/php/phpPHPVER-fpm-SITENAME.sock;
 	}
 
 	# deny access to .htaccess files, if Apache's document root
