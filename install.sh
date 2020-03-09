@@ -78,6 +78,7 @@ installMariaDB() {
   echo -e "\n\n${DIM}Setting the mysql root account to use your system root account${NC}\n"
   echo "use mysql; update user set plugin='mysql_native_password' where user='root'; flush privileges;"|sudo mysql -u root -p
   echo -e "${GREEN}More information can be found here: https://github.com/THE-Engineering/cms-the-platform/wiki/Native-LNMP-stack-(Linux-Nginx-Mysql-Php)#mysql${NC}"
+  sudo usermod -a -G www-data $USER
 }
 # executable, friendly name, install function
 askInstall mysql MariaDB installMariaDB

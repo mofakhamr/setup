@@ -85,5 +85,6 @@ if [ "$confirm" != "${confirm#[Yy]}" ]; then
   sudo cp /etc/php/${phpver}/fpm/pool.d/www.conf /etc/php/${phpver}/fpm/pool.d/${sitename}.conf
   sudo sed -i "s/^\[www\]/\[${sitename}\]/g" /etc/php/${phpver}/fpm/pool.d/${sitename}.conf
   sudo sed -i "s/php${phpver}-fpm.sock/php${phpver}-fpm-${sitename}.sock/g" /etc/php/${phpver}/fpm/pool.d/${sitename}.conf
+  sudo service php${phpver}-fpm restart
 fi
 
