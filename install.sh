@@ -111,22 +111,6 @@ askInstall php7.3 "PHP-7.3" installPhp
 # Nginx
 installNginx() {
   sudo apt-get install nginx
-  echo -e "Do you wish to ${PURPLE}configure nginx for timeshighereducation.com${NC} ${YELLOW}${2}?${NC} [y N]"
-  read answer
-  if [ "$answer" != "${answer#[Yy]}" ]; then
-    # Configure nginx site definition
-    sudo cp ./configs/nginx.txt /etc/nginx/sites-available/the
-    if ! [ -e /etc/nginx/sites-enabled/the ]; then
-      sudo ln -s /etc/nginx/sites-available/the /etc/nginx/sites-enabled/the
-    fi
-    echo "Configuring web definition"
-    sudo service nginx restart
-    # Configure FPM pool
-    sudo cp /etc/php/7.1/fpm/pool.d/www.conf /etc/php/7.1/fpm/pool.d/the.conf
-    sudo sed -i 's/^\[www\]/\[the\]/g' /etc/php/7.1/fpm/pool.d/the.conf
-    sudo sed -i 's/php7.1-fpm.sock/php7.1-fpm-the.sock/g' /etc/php/7.1/fpm/pool.d/the.conf
-  fi
-
   # start chrome in localhost
   #if [ -x "google-chrome" ]; then
   #  google-chrome http://localhost
