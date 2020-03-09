@@ -10,6 +10,9 @@ server {
 	# REMEMBER TO CREATE hosts ENTRY IF NOT LOCALHOST
 	server_name SITENAME.localhost;
 
+        error_log  /var/log/nginx/SITENAME-error.log;
+        access_log  /var/log/nginx/SITENAME-access.log;
+
         # Speed up the local purge responses
         if ($request_method = PURGE) {
           return 200 'Local purges are unavailable, duh!';
