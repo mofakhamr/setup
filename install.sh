@@ -101,7 +101,7 @@ installPhp73 () {
     sudo apt-add-repository ppa:ondrej/php
   fi
   sudo apt update
-  sudo apt-get install php7.3-xml php7.3-curl php7.3-fpm php7.3-mysql php7.3-mbstring php7.3-redis
+  sudo apt-get install php7.3-xml php7.3-curl php7.3-fpm php7.3-mysql php7.3-mbstring php7.3-redis php7.3-gd
   sudo sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g' /etc/php/7.3/fpm/php.ini
   sudo systemctl restart php7.3-fpm
 }
