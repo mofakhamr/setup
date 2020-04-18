@@ -89,7 +89,7 @@ installPhp71() {
     sudo apt-add-repository ppa:ondrej/php
   fi
   sudo apt update
-  sudo apt-get install php7.1-xml php7.1-curl php7.1-fpm php7.1-mysql php7.1-mbstring php7.1-redis
+  sudo apt-get install php7.1-xml php7.1-curl php7.1-fpm php7.1-gd php7.1-mysql php7.1-mbstring php7.1-redis
   sudo sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g' /etc/php/7.1/fpm/php.ini
   sudo systemctl restart php7.1-fpm
 }
@@ -141,7 +141,8 @@ askInstall composer Composer installComposer
 # Install Drush
 installDrush() {
   # actually installs latest drush 10 - that ok??
-  composer global require drush/drush
+  composer global require drush/drush:8.*
+  # probably not
   export PATH="$HOME/.config/composer/vendor/bin:$PATH"
 }
 # executable, friendly name, install function
@@ -194,8 +195,24 @@ installDocker() {
   sudo usermod -aG docker $USER
   newgrp docker
   echo -e "You can now test Docker by running: ${GREEN}docker run hello-world${NC}"
+
   # install Docker compose
-  sudo apt install docker-compose
+  #  sudo curl -L https://github.com/docker/compose/releases/download/1.21.0/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+  #  sudo apt install docker-compose
+
+  ## Latest version  1.25.5 compatible with 3.8 files
+  sudo apt install jq
+  compose_version=$(curl https://api.github.com/repos/docker/compose/releases/latest | jq .name -r)
+  output='/usr/local/bin/docker-compose'
+  sudo curl -L https://github.com/docker/compose/releases/download/$compose_version/docker-compose-$(uname -s)-$(uname -m) -o $output
+  sudo chmod +x $output
+  sudo ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
+  echo $(docker-compose --version)
+
+  # sudo rm /usr/local/bin/docker-compose
+
+  # Make life easier and create an alias in bash_aliases
+  # docker rm -v $(docker ps -a -q -f status=exited)
 }
 # executable, friendly name, install function
 askInstall docker Docker installDocker

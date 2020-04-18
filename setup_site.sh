@@ -53,7 +53,7 @@ if [ ! -d "${destination}" ]; then
   echo -e "${YELLOW}Shall I create the folder ${destination}? [y N]${NC}"
   read create
   if [ "$create" != "${create#[Yy]}" ]; then
-    mkdir ${destination}
+    mkdir -p ${destination}
     echo '<?php phpinfo();' > "${destination}/index.php"
   fi
 fi
