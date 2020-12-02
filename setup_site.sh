@@ -18,12 +18,12 @@ fi
 [ "$UID" -eq 0 ] || exec sudo bash "$0" "$@"
 
 # Only run on ubuntu 19.10.
-if grep -q "Ubuntu 19.10" /etc/os-release
+if grep -q "Ubuntu 19.04" /etc/os-release
 then
-  echo -e "Ubuntu 19.10 ${GREEN}found${NC}, continuing...\n"
+  echo -e "Ubuntu 19.04 ${GREEN}found${NC}, continuing...\n"
 else
-  echo -e "Sorry ${RED}you are not running Ubuntu 19.10${NC}, quitting.\n"
-  exit 1;
+  echo -e "Sorry ${RED}you are not running Ubuntu 19.04${NC}, I will continue but at your own risk!\n"
+#  exit 1;
 fi
 
 
