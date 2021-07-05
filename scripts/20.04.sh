@@ -35,8 +35,8 @@ isInstalled(){
 
 # Install prereqs
 PREREQS_INSTALL=()
-PREREQS_LIST=(dialog curl git)
-for i in "${PREREQS_LIST[@]}"
+PREREQS_AVAIL=(dialog curl git)
+for i in "${PREREQS_AVAIL[@]}"
 do
   app_is_installed=$(isInstalled "${i}")
   echo "$i app_is_installed:  ${app_is_installed} "
@@ -54,7 +54,7 @@ fi
 
 
 # Work out what's installed already
-declare -A SOFTWARE_INSTALL=(
+declare -A SOFTWARE_AVAIL=(
 ['pritunl-client-electron']=PriTunl
 ['zoom']=Zoom
 ['mysql']=MariaDB
@@ -74,90 +74,45 @@ declare -A SOFTWARE_INSTALL=(
 declare -a SOFTWARE_LIST=()
 
 echo "----Loop----"
-for z in "${!SOFTWARE_INSTALL[@]}"
+for z in "${!SOFTWARE_AVAIL[@]}"
 do
-  echo "Checking: ${z} = ${SOFTWARE_INSTALL[$z]}"
+  echo "Checking: ${z} = ${SOFTWARE_AVAIL[$z]}"
   app_is_installed=$(isInstalled "${z}")
   echo "$z app_is_installed:  ${app_is_installed} "
   if [ "$app_is_installed" = 0 ]
   then
-    SOFTWARE_LIST+=("${SOFTWARE_INSTALL[$z]} ${SOFTWARE_INSTALL[$z]}  off")
+    SOFTWARE_LIST+=("${SOFTWARE_AVAIL[$z]} ${SOFTWARE_AVAIL[$z]}  off")
   else
-    SOFTWARE_LIST+=("${SOFTWARE_INSTALL[$z]} ${SOFTWARE_INSTALL[$z]} on")
+    SOFTWARE_LIST+=("${SOFTWARE_AVAIL[$z]} ${SOFTWARE_AVAIL[$z]} on")
   fi
   echo ""
 done
 
-
-TOINSTALL=$(dialog --stdout \
+SOFTWARE_TO_INSTALL=$(dialog --stdout \
   --separate-output \
   --ok-label "Install" \
   --checklist "Select options:" 20 80 10 \
   $(printf '%s\n' "${SOFTWARE_LIST[@]}") \
   2>&1)
 
-echo "===== Final list ====="
+echo "===== SOFTWARE_LIST ====="
 printf '%s\n' "${SOFTWARE_LIST[@]}"
-echo "===== TOINSTALL list ====="
-printf '%s\n' "${TOINSTALL[@]}"
+echo "===== SOFTWARE_TO_INSTALL ====="
+printf '%s\n' "${SOFTWARE_TO_INSTALL[@]}"
 
-
-exit 9;
-
-
-choices=$(dialog --stdout \
-  --separate-output \
-  --ok-label "Install" \
-  --checklist "Select options:" 20 80 10 \
-  "${SOFTWARE_LIST[@]}" \
-  2>&1)
-
-
-exit 9;
-
-
-OPTIONS=(
-PriTunl "VPN Client" on
-Slack "Chat tool" on
-Zoom "Video Conference" on
-MariaDB "Preferred RDBMS" on
-Php "PHP (7.4)" on
-Nginx "Webserver" on
-Psh "PlatformSH CLI" on
-Composer "PHP Package manager" on
-Drush "Drupal Shell tool" on
-Dbeaver "Great GUI for DB management" on
-GitCrypt "Crypt for Git" on
-Node "Node JS" on
-Docker "Container" on
-AwsCli "AWS CLI tool" on
-KubeCtl "K8 CLI tool" on
-)
-
-exit 9;
-
-
-
-
-choices=$(dialog --stdout \
-  --separate-output \
-  --ok-label "Install" \
-  --checklist "Select options:" 20 80 10 \
-  "${OPTIONS[@]}" \
-  2>&1)
+# shellcheck disable=SC2059
+printf "${GREEN}******** STARTING INSTALL ********${NC}\n"
 
 if [ "$?" != "0" ]
 then
   dialog --title "Installation" --msgbox "\nInstallation was canceled at your request." 10 50
   exit 9;
 else
-
-  #  printf '%s\n' "${choices[@]}"
-  for i in "${choices[@]}"
+  for i in "${SOFTWARE_TO_INSTALL[@]}"
   do
-    echo "Installing ${i}"
+    echo "${i}"
   done
-isInstalled pritunl-client-electron PriTunl installPriTunl
+#isInstalled pritunl-client-electron PriTunl installPriTunl
 echo "well... $app_is_installed"
 
 fi
