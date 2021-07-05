@@ -24,8 +24,97 @@ else
   exit 1;
 fi
 
+isInstalled(){
+  app_is_installed=$(command -v "${1}")
+  if [ -x "$app_is_installed" ]; then
+    echo 1
+  else
+    echo 0
+  fi
+}
+
 # Install prereqs
-sudo apt-get install dialog curl git -y
+PREREQS_INSTALL=()
+PREREQS_LIST=(dialog curl git)
+for i in "${PREREQS_LIST[@]}"
+do
+  app_is_installed=$(isInstalled "${i}")
+  echo "$i app_is_installed:  ${app_is_installed} "
+  if [ "$app_is_installed" = 0 ]
+  then
+    PREREQS_INSTALL+=("${i}")
+  fi
+done
+if [ "${PREREQS_INSTALL[*]}" ]
+then
+  eval "sudo apt-get install ${PREREQS_INSTALL[*]}"
+fi
+
+
+
+
+# Work out what's installed already
+declare -A SOFTWARE_INSTALL=(
+['pritunl-client-electron']=PriTunl
+['zoom']=Zoom
+['mysql']=MariaDB
+['php']=Php
+['nginx']=Nginx
+['platform-cli']=platformSH
+['composer']=Composer
+['drush']=Drush
+['dbeaver']=Dbeaver
+['gitcrypt']=GitCrypt
+['node']=Node
+['docker']=Docker
+['aws']=AWSCLI
+['kubectl']=KubeCtl
+)
+
+declare -a SOFTWARE_LIST=()
+
+echo "----Loop----"
+for z in "${!SOFTWARE_INSTALL[@]}"
+do
+  echo "Checking: ${z} = ${SOFTWARE_INSTALL[$z]}"
+  app_is_installed=$(isInstalled "${z}")
+  echo "$z app_is_installed:  ${app_is_installed} "
+  if [ "$app_is_installed" = 0 ]
+  then
+    SOFTWARE_LIST+=("${SOFTWARE_INSTALL[$z]} ${SOFTWARE_INSTALL[$z]}  off")
+  else
+    SOFTWARE_LIST+=("${SOFTWARE_INSTALL[$z]} ${SOFTWARE_INSTALL[$z]} on")
+  fi
+  echo ""
+done
+
+
+TOINSTALL=$(dialog --stdout \
+  --separate-output \
+  --ok-label "Install" \
+  --checklist "Select options:" 20 80 10 \
+  $(printf '%s\n' "${SOFTWARE_LIST[@]}") \
+  2>&1)
+
+echo "===== Final list ====="
+printf '%s\n' "${SOFTWARE_LIST[@]}"
+echo "===== TOINSTALL list ====="
+printf '%s\n' "${TOINSTALL[@]}"
+
+
+exit 9;
+
+
+choices=$(dialog --stdout \
+  --separate-output \
+  --ok-label "Install" \
+  --checklist "Select options:" 20 80 10 \
+  "${SOFTWARE_LIST[@]}" \
+  2>&1)
+
+
+exit 9;
+
 
 OPTIONS=(
 PriTunl "VPN Client" on
@@ -45,35 +134,46 @@ AwsCli "AWS CLI tool" on
 KubeCtl "K8 CLI tool" on
 )
 
+exit 9;
+
+
+
+
 choices=$(dialog --stdout \
   --separate-output \
   --ok-label "Install" \
   --checklist "Select options:" 20 80 10 \
-  "${OPTIONS[@]}"
-)
-
+  "${OPTIONS[@]}" \
+  2>&1)
 
 if [ "$?" != "0" ]
 then
   dialog --title "Installation" --msgbox "\nInstallation was canceled at your request." 10 50
+  exit 9;
 else
 
-#  printf '%s\n' "${choices[@]}"
+  #  printf '%s\n' "${choices[@]}"
   for i in "${choices[@]}"
-do
-	echo "Installing: ${i}"
-done
+  do
+    echo "Installing ${i}"
+  done
+isInstalled pritunl-client-electron PriTunl installPriTunl
+echo "well... $app_is_installed"
 
 fi
 rm -f /tmp/ERRORS$$
+
 
 exit 9;
 
 
 
 
+
+
+# Three params: $executable, $name, $function
 # Check for $executable, then ask the user to install $name before call $function.
-askInstall(){
+doInstall(){
   is_installed=$(command -v ${1})
   action_verb="install"
   if [ -x "$is_installed" ]; then
@@ -85,13 +185,43 @@ askInstall(){
   if [ "$answer" != "${answer#[Yy]}" ]; then
     # Call $function
     echo -e "Installing ${2}..."
-    eval $3
+    return 1
+#    eval $3
   else
    echo -e "${DIM}Skipping $2 installation${NC}\n\n"
+    return 0
   fi
 }
+
+if [ "$?" != "0" ]
+then
+  dialog --title "Installation" --msgbox "\nInstallation was canceled at your request." 10 50
+else
+
+  #  printf '%s\n' "${choices[@]}"
+  for i in "${choices[@]}"
+  do
+    echo "Installing ${i}"
+  done
+askInstall pritunl-client-electron PriTunl installPriTunl
+
+fi
+rm -f /tmp/ERRORS$$
+
+exit 9;
+
+
+
+
 # PriTunl VPN
 installPriTunl() {
+  v1=0
+if [ "$v1" = 1 ]; then
+  echo "true"
+  else
+    echo "false"
+fi
+
   sudo echo deb https://repo.pritunl.com/stable/apt focal main > /etc/apt/sources.list.d/pritunl.list
   sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com --recv 7568D9BB55FF9E5287D586017AE645C0CF8E292A
   sudo apt-get update
