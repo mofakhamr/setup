@@ -8,6 +8,8 @@ PURPLE='\033[1;35m'
 DIM='\e[2m'
 NC='\033[0m'
 
+INSTALL_THE_SITE=1
+
 # Ensure root available.
 if [ "$UID" -ne 0 ]; then
   echo -e "${PURPLE}** Some commands require root privileges **${NC}"
@@ -33,164 +35,85 @@ isInstalled(){
   fi
 }
 
+# Software list, maintains order
+declare -a APPS_RUNTIME;
+declare -a APPS_NAME;
+declare -a APPS_DIALOG_LIST;
+APPS_RUNTIME+=("pritunl-client-electron"); APPS_NAME+=("PriTunl");
+APPS_RUNTIME+=("zoom"); APPS_NAME+=("Zoom");
+APPS_RUNTIME+=("node"); APPS_NAME+=("Node");
+APPS_RUNTIME+=("docker"); APPS_NAME+=("Docker");
+APPS_RUNTIME+=("aws"); APPS_NAME+=("AwsCli");
+APPS_RUNTIME+=("aws-vault"); APPS_NAME+=("AwsVault");
+APPS_RUNTIME+=("kubectl"); APPS_NAME+=("KubeCtl");
+APPS_RUNTIME+=("gitcrypt"); APPS_NAME+=("GitCrypt");
+APPS_RUNTIME+=("pho"); APPS_NAME+=("Php");
+APPS_RUNTIME+=("composer"); APPS_NAME+=("Composer");
+APPS_RUNTIME+=("drush"); APPS_NAME+=("Drush");
+APPS_RUNTIME+=("platform-cli"); APPS_NAME+=("platformSH");
+APPS_RUNTIME+=("nginx"); APPS_NAME+=("Nginx");
+APPS_RUNTIME+=("mysql"); APPS_NAME+=("MariaDB");
+APPS_RUNTIME+=("dbeaver"); APPS_NAME+=("Dbeaver");
+# Work out what's already installed and set in APPS_DIALOG_LIST
+for id in ${!APPS_RUNTIME[*]}
+do
+  if [ $(isInstalled "${APPS_RUNTIME[$id]}") = 1 ]; then APPS_DIALOG_LIST+=("${id} ${APPS_NAME[$id]} on"); else APPS_DIALOG_LIST+=("${id} ${APPS_NAME[$id]} off");  fi
+done
+#printf '%s\n' "${APPS_DIALOG_LIST[@]}"
+
+
+
 # Install prereqs
-PREREQS_INSTALL=()
-PREREQS_AVAIL=(dialog curl git)
-for i in "${PREREQS_AVAIL[@]}"
-do
-  app_is_installed=$(isInstalled "${i}")
-  echo "$i app_is_installed:  ${app_is_installed} "
-  if [ "$app_is_installed" = 0 ]
-  then
-    PREREQS_INSTALL+=("${i}")
-  fi
-done
-if [ "${PREREQS_INSTALL[*]}" ]
-then
-  eval "sudo apt-get install ${PREREQS_INSTALL[*]}"
-fi
-
-
-
-
-# Work out what's installed already
-declare -A SOFTWARE_AVAIL=(
-['pritunl-client-electron']=PriTunl
-['zoom']=Zoom
-['mysql']=MariaDB
-['php']=Php
-['nginx']=Nginx
-['platform-cli']=platformSH
-['composer']=Composer
-['drush']=Drush
-['dbeaver']=Dbeaver
-['gitcrypt']=GitCrypt
-['node']=Node
-['docker']=Docker
-['aws']=AWSCLI
-['kubectl']=KubeCtl
-)
-
-declare -a SOFTWARE_LIST=()
-
-echo "----Loop----"
-for z in "${!SOFTWARE_AVAIL[@]}"
-do
-  echo "Checking: ${z} = ${SOFTWARE_AVAIL[$z]}"
-  app_is_installed=$(isInstalled "${z}")
-  echo "$z app_is_installed:  ${app_is_installed} "
-  if [ "$app_is_installed" = 0 ]
-  then
-    SOFTWARE_LIST+=("${SOFTWARE_AVAIL[$z]} ${SOFTWARE_AVAIL[$z]}  off")
-  else
-    SOFTWARE_LIST+=("${SOFTWARE_AVAIL[$z]} ${SOFTWARE_AVAIL[$z]} on")
-  fi
-  echo ""
-done
-
-SOFTWARE_TO_INSTALL=$(dialog --stdout \
-  --separate-output \
-  --ok-label "Install" \
-  --checklist "Select options:" 20 80 10 \
-  $(printf '%s\n' "${SOFTWARE_LIST[@]}") \
-  2>&1)
-
-echo "===== SOFTWARE_LIST ====="
-printf '%s\n' "${SOFTWARE_LIST[@]}"
-echo "===== SOFTWARE_TO_INSTALL ====="
-printf '%s\n' "${SOFTWARE_TO_INSTALL[@]}"
-
-# shellcheck disable=SC2059
-printf "${GREEN}******** STARTING INSTALL ********${NC}\n"
-
-if [ "$?" != "0" ]
-then
-  dialog --title "Installation" --msgbox "\nInstallation was canceled at your request." 10 50
-  exit 9;
-else
-  for i in "${SOFTWARE_TO_INSTALL[@]}"
+installPreReqs(){
+  sudo apt update
+  PREREQS_INSTALL=()
+  PREREQS_AVAIL=(dialog curl git)
+  for i in "${PREREQS_AVAIL[@]}"
   do
-    echo "${i}"
+    app_is_installed=$(isInstalled "${i}")
+    echo "$i app_is_installed:  ${app_is_installed} "
+    if [ "$app_is_installed" = 0 ]
+    then
+      PREREQS_INSTALL+=("${i}")
+    fi
   done
-#isInstalled pritunl-client-electron PriTunl installPriTunl
-echo "well... $app_is_installed"
-
-fi
-rm -f /tmp/ERRORS$$
-
-
-exit 9;
-
-
-
-
-
-
-# Three params: $executable, $name, $function
-# Check for $executable, then ask the user to install $name before call $function.
-doInstall(){
-  is_installed=$(command -v ${1})
-  action_verb="install"
-  if [ -x "$is_installed" ]; then
-    echo -e "${GREEN}${2} already installed${NC}"
-    action_verb="reinstall"
-  fi
-  echo -e "Do you wish to ${PURPLE}${action_verb}${NC} ${YELLOW}${2}?${NC} [y N]"
-  read answer
-  if [ "$answer" != "${answer#[Yy]}" ]; then
-    # Call $function
-    echo -e "Installing ${2}..."
-    return 1
-#    eval $3
-  else
-   echo -e "${DIM}Skipping $2 installation${NC}\n\n"
-    return 0
+  if [ "${PREREQS_INSTALL[*]}" ]
+  then
+    eval "sudo apt-get install ${PREREQS_INSTALL[*]}"
   fi
 }
 
-if [ "$?" != "0" ]
-then
-  dialog --title "Installation" --msgbox "\nInstallation was canceled at your request." 10 50
-else
+installAll(){
+  APPS_TO_INSTALL=$(dialog --stdout \
+  --separate-output \
+  --ok-label "Install" \
+  --checklist "Select options:" 20 80 10 \
+  $(printf '%s\n' "${APPS_DIALOG_LIST[@]}") \
+  2>&1)
+  #printf '%s\n' "${APPS_TO_INSTALL[@]}"
 
-  #  printf '%s\n' "${choices[@]}"
-  for i in "${choices[@]}"
-  do
-    echo "Installing ${i}"
+  # shellcheck disable=SC2068
+  for sid in ${APPS_TO_INSTALL[@]}; do
+    cmd="install${APPS_NAME[$sid]}"
+    echo -e "${GREEN}${cmd}${NC}"
+    #eval "${cmd}"
   done
-askInstall pritunl-client-electron PriTunl installPriTunl
-
-fi
-rm -f /tmp/ERRORS$$
-
-exit 9;
-
-
+  rm -f /tmp/ERRORS$$
+}
 
 
 # PriTunl VPN
 installPriTunl() {
-  v1=0
-if [ "$v1" = 1 ]; then
-  echo "true"
-  else
-    echo "false"
-fi
-
   sudo echo deb https://repo.pritunl.com/stable/apt focal main > /etc/apt/sources.list.d/pritunl.list
   sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com --recv 7568D9BB55FF9E5287D586017AE645C0CF8E292A
   sudo apt-get update
   sudo apt-get install pritunl-client-electron
 }
-# executable, friendly name, install function
-askInstall pritunl-client-electron PriTunl installPriTunl
 
 # Slack
 installSlack() {
   sudo snap install slack --classic
 }
-# executable, friendly name, install function
-askInstall slack Slack installSlack
 
 # Zoom
 installZoom() {
@@ -198,40 +121,29 @@ installZoom() {
   sudo apt install ./zoom_amd64.deb
   rm ./zoom_amd64.deb
 }
-# executable, friendly name, install function
-askInstall zoom Zoom installZoom
 
 # mariaDB
 installMariaDB() {
-  sudo apt-get install mariadb-server mariadb-client
+  sudo apt-get install -y mariadb-server mariadb-client
   echo -e "\n\n${PURPLE}Securing mysql_secure_installation, follow prompts${NC}\n"
   sudo mysql_secure_installation
   echo -e "\n\n${DIM}Setting the mysql root account to use your system root account${NC}\n"
   echo "use mysql; update user set plugin='mysql_native_password' where user='root'; flush privileges;"|sudo mysql -u root -p
   echo -e "${GREEN}More information can be found here: https://github.com/THE-Engineering/cms-the-platform/wiki/Native-LNMP-stack-(Linux-Nginx-Mysql-Php)#mysql${NC}"
 }
-# executable, friendly name, install function
-askInstall mysql MariaDB installMariaDB
 
 # PHP
 installPhp() {
-  if ! [ -e /etc/apt/sources.list.d/ondrej-ubuntu-php-eoan.list ]; then
-    sudo apt-add-repository ppa:ondrej/php
-  fi
-  sudo apt update
-  sudo apt-get install php7.1-xml php7.1-curl php7.1-fpm php7.1-mysql php7.1-mbstring php7.1-redis
-  sudo sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g' /etc/php/7.1/fpm/php.ini
-  sudo systemctl restart php7.1-fpm
+  sudo apt-get install -y php-xml php-curl php-fpm php-mysql php-mbstring php-redis
+  sudo sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g' /etc/php/7.4/fpm/php.ini
+  sudo systemctl restart php7.4-fpm
 }
-# executable, friendly name, install function
-askInstall php PHP installPhp
 
 # Nginx
 installNginx() {
-  sudo apt-get install nginx
-  echo -e "Do you wish to ${PURPLE}configure nginx for timeshighereducation.com${NC} ${YELLOW}${2}?${NC} [y N]"
-  read answer
-  if [ "$answer" != "${answer#[Yy]}" ]; then
+  sudo apt-get install -y nginx
+  if [ "${INSTALL_THE_SITE}" -eq "1" ]; then
+    echo -e "${PURPLE}Configuring nginx for timeshighereducation.com${NC}"
     # Configure nginx site definition
     sudo cp ./configs/nginx.txt /etc/nginx/sites-available/the
     if ! [ -e /etc/nginx/sites-enabled/the ]; then
@@ -240,26 +152,21 @@ installNginx() {
     echo "Configuring web definition"
     sudo service nginx restart
     # Configure FPM pool
-    sudo cp /etc/php/7.1/fpm/pool.d/www.conf /etc/php/7.1/fpm/pool.d/the.conf
-    sudo sed -i 's/^\[www\]/\[the\]/g' /etc/php/7.1/fpm/pool.d/the.conf
-    sudo sed -i 's/php7.1-fpm.sock/php7.1-fpm-the.sock/g' /etc/php/7.1/fpm/pool.d/the.conf
+    sudo cp /etc/php/7.4/fpm/pool.d/www.conf /etc/php/7.4/fpm/pool.d/the.conf
+    sudo sed -i 's/^\[www\]/\[the\]/g' /etc/php/7.4/fpm/pool.d/the.conf
+    sudo sed -i 's/php7.1-fpm.sock/php7.4-fpm-the.sock/g' /etc/php/7.4/fpm/pool.d/the.conf
   fi
-
   # start chrome in localhost
   #if [ -x "google-chrome" ]; then
   #  google-chrome http://localhost
   #fi
 }
-# executable, friendly name, install function
-askInstall nginx Nginx installNginx
 
 # Install Platform.sh cli tool
 installPsh() {
   curl -sS https://platform.sh/cli/installer | php;
   source ~/.bashrc
 }
-# executable, friendly name, install function
-askInstall platform PlatformSH-cli installPsh
 
 # Install Composer
 installComposer() {
@@ -268,8 +175,6 @@ installComposer() {
   sudo chmod +x /usr/local/bin/composer
   echo 'done'
 }
-# executable, friendly name, install function
-askInstall composer Composer installComposer
 
 # Install Drush
 installDrush() {
@@ -277,8 +182,6 @@ installDrush() {
   composer global require drush/drush
   export PATH="$HOME/.config/composer/vendor/bin:$PATH"
 }
-# executable, friendly name, install function
-askInstall drush Drush installDrush
 
 # dbeaver
 installDbeaver() {
@@ -286,15 +189,11 @@ installDbeaver() {
   sudo apt install ./dbeaver-ce_latest_amd64.deb
   rm dbeaver-ce_latest_amd64.deb
 }
-# executable, friendly name, install function
-askInstall dbeaver DBeaver installDbeaver
 
 # Git Crypt
 installGitCrypt() {
   sudo apt-get install git-crypt -y
 }
-# executable, friendly name, install function
-askInstall git-crypt GitCrypt installGitCrypt
 
 # Node
 installNode() {
@@ -303,8 +202,6 @@ installNode() {
   sudo apt-get install -y nodejs
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash
 }
-# executable, friendly name, install function
-askInstall node Node-and-npm installNode
 
 # Docker
 installDocker() {
@@ -328,8 +225,16 @@ installDocker() {
   newgrp docker
   echo -e "You can now test Docker by running: ${GREEN}docker run hello-world${NC}"
 }
-# executable, friendly name, install function
-askInstall docker Docker installDocker
+
+installKubeCtl(){
+  echo -e "${RED}NOT YET READY${NC}";
+}
+installAwsCli(){
+  echo -e "${RED}NOT YET READY${NC}";
+}
+installAwsVault(){
+  echo -e "${RED}NOT YET READY${NC}";
+}
 
 # Some final bits
 finalBits(){
@@ -373,8 +278,13 @@ finalBits(){
    echo -e "${DIM}Skipping $2 installation${NC}\n\n"
   fi
 }
-finalBits
+
+installPreReqs
+installAll
+
+# finalBits
 
 
+echo -e "${YELLOW}Everything finished${NC}"
 echo -e "${YELLOW}Everything finished${NC}"
 
