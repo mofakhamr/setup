@@ -61,8 +61,6 @@ do
 done
 #printf '%s\n' "${APPS_DIALOG_LIST[@]}"
 
-
-
 # Install prereqs
 installPreReqs(){
   sudo apt update
@@ -141,6 +139,9 @@ installPhp() {
 
 # Nginx
 installNginx() {
+  if [ $(isInstalled "php") = 0 ]; then installPhp;  fi
+  PHPVER=$(php -r 'echo PHP_VERSION;'|rev|cut -d"." -f2-|rev)
+
   sudo apt-get install -y nginx
   if [ "${INSTALL_THE_SITE}" -eq "1" ]; then
     echo -e "${PURPLE}Configuring nginx for timeshighereducation.com${NC}"
@@ -164,12 +165,16 @@ installNginx() {
 
 # Install Platform.sh cli tool
 installPsh() {
+  if [ $(isInstalled "php") = 0 ]; then installPhp;  fi
+
   curl -sS https://platform.sh/cli/installer | php;
   source ~/.bashrc
 }
 
 # Install Composer
 installComposer() {
+  if [ $(isInstalled "php") = 0 ]; then installPhp;  fi
+
   curl -sS https://getcomposer.org/installer | php
   sudo mv composer.phar /usr/local/bin/composer
   sudo chmod +x /usr/local/bin/composer
@@ -272,7 +277,6 @@ finalBits(){
 
     # Drupal settings file
     # @TODO need git crypt
-
 
   else
    echo -e "${DIM}Skipping $2 installation${NC}\n\n"
